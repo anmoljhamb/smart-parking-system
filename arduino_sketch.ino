@@ -106,14 +106,15 @@ void loop()
             delay_ms(100);
         }
 
-        Serial.println();
         char resp = Serial.read();
-        while (resp < '0' && resp > '2')
-        {
-            resp = Serial.read();
-        }
-        Serial.print("Got resp as ");
-        Serial.println(resp);
+        Serial.println();
+        // while (resp < '0' && resp > '2')
+        // {
+        //     resp = Serial.read();
+        // }
+
+        // Serial.print("Got resp as ");
+        // Serial.println(resp);
 
         lcd.clear();
         lcd.setCursor(0, 0);
