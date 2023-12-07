@@ -5,6 +5,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdbool.h>
+#include <Servo.h>
 
 /**
  * * Pin Information
@@ -28,14 +29,12 @@
 // prototypes;
 ISR(INT0_vect);
 ISR(INT1_vect);
-void setupServos();
-void servo1Open();
-void servo1Close();
-void servo2Open();
-void servo2Close();
 void delay_ms(int ms);
 void printDec(byte *buffer, byte bufferSize);
-
+void entryOpen();
+void exitOpen();
+void entryClose();
+void exitClose();
 // Global Values
 bool prevSensor1 = true;
 bool prevSensor2 = true;
@@ -43,6 +42,7 @@ bool sensor1First = true;
 bool sensor2First = true;
 bool senseRfid = false;
 char senser = '1';
+Servo servo;
 MFRC522 rfid(SS_PIN, RST_PIN);      // Instance of the class
 LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
 
@@ -66,6 +66,10 @@ void setup()
     lcd.backlight();
     lcd.setCursor(0, 0);
     lcd.print("Parking");
+    entryOpen();
+    entryClose();
+    exitOpen();
+    exitClose();
 }
 
 void loop()
@@ -82,6 +86,9 @@ void loop()
     Serial.println();
     Serial.print("Sense RFID for the sensor: ");
     Serial.println(senser);
+
+    entryClose();
+    exitClose();
 
     while (1)
     {
@@ -122,14 +129,14 @@ void loop()
             lcd.print("Welcome To");
             lcd.setCursor(0, 1);
             lcd.print("Parking");
-            servo1Open();
+            entryOpen();
         }
         else if (resp == '2')
         {
             lcd.print("Thanks For");
             lcd.setCursor(0, 1);
             lcd.print("Coming.");
-            servo2Open();
+            exitOpen();
         }
         else
         {
@@ -149,13 +156,12 @@ ISR(INT0_vect)
 {
     // todo make sure to disable the other interrupt while we're handling this one
     _delay_ms(50); // Debouncing
-    servo1Close();
     bool currentValue = (PIND & (1 << PD2)) != 0;
     if (sensor1First || currentValue != prevSensor1)
     {
         if (!currentValue)
         {
-            Serial.println("The car has just arrived");
+            Serial.println("The car has just arrived, close the entry");
             senseRfid = true;
         }
         prevSensor1 = currentValue;
@@ -168,7 +174,6 @@ ISR(INT1_vect)
 {
     // todo make sure to disable the other interrupt while we're handling this one
     _delay_ms(50); // Debouncing
-    servo2Close();
     bool currentValue = (PIND & (1 << PD3)) != 0;
     if (sensor2First || currentValue != prevSensor2)
     {
@@ -176,53 +181,11 @@ ISR(INT1_vect)
         {
             Serial.println("The car has just arrived");
             senseRfid = true;
-            // senseRfid();
         }
         prevSensor2 = currentValue;
         if (sensor2First)
             sensor2First = false;
     }
-}
-
-void setupServos()
-{
-    DDRB |= (1 << servo1) | (1 << servo2);                  // Set PB1 as output
-    TCCR1A |= (1 << COM1A1) | (1 << COM1B1) | (1 << WGM11); // Fast PWM, non-inverting mode // Setup for both OC1A, AND OC1B
-    TCCR1B |= (1 << WGM13) | (1 << WGM12) | (1 << CS11);    // Fast PWM, prescaler = 8
-    ICR1 = 39999;                                           // 20ms PWM period
-
-    // Set both initially to be in the middle
-    OCR1A = 1999;
-    OCR1B = 1999;
-}
-
-void servo1Open()
-{
-    // DDRB |= (1 << servo1);
-    // TCCR1A |= (1 << COM1A1) | (1 << WGM11);
-    // TCCR1B |= (1 << WGM13) | (1 << WGM12) | (1 << CS11);
-    // ICR1 = 39999;
-    // OCR1A = 2999;
-    // delay_ms(1000);
-    // TCCR1A = 0x0;
-    // TCCR1B = 0x0;
-    // OCR1A = 0x0;
-    // DDRB &= ~(1 << servo1);
-}
-
-void servo1Close()
-{
-    // OCR1A = 1999;
-}
-
-void servo2Open()
-{
-    // OCR2A = 2999;
-}
-
-void servo2Close()
-{
-    // OCR2A = 1999;
 }
 
 void delay_ms(int ms)
@@ -247,4 +210,36 @@ void printDec(byte *buffer, byte bufferSize)
         Serial.print(buffer[i] < 0x10 ? " 0" : "-");
         Serial.print(buffer[i], DEC);
     }
+}
+
+void entryOpen()
+{
+    servo.attach(10);
+    servo.write(70);
+    delay(2000);
+    servo.detach();
+}
+
+void entryClose()
+{
+    servo.attach(10);
+    servo.write(40);
+    delay(2000);
+    servo.detach();
+}
+
+void exitOpen()
+{
+    servo.attach(9);
+    servo.write(70);
+    delay(2000);
+    servo.detach();
+}
+
+void exitClose()
+{
+    servo.attach(9);
+    servo.write(40);
+    delay(2000);
+    servo.detach();
 }
