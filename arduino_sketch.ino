@@ -1,6 +1,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdbool.h>
+#include <SPI.h>
+#include <MFRC522.h>
 
 /**
  * * Pin Information
@@ -35,6 +37,7 @@ bool prevSensor1 = true;
 bool prevSensor2 = true;
 bool sensor1First = true;
 bool sensor2First = true;
+MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
 
 void setup()
 {
@@ -45,6 +48,9 @@ void setup()
     EIMSK |= (1 << INT0) | (1 << INT1);     // enable interrupts for both.
     sei();                                  // enable global interrupts.
     Serial.begin(9600);                     // enable serial for the given baudrate.
+    SPI.begin();                            // Init SPI bus
+    rfid.PCD_Init();                        // Init MFRC522
+    rfid.PCD_DumpVersionToSerial();         // Show details of PCD - MFRC522 Card Reader details
 }
 
 void loop() {}
@@ -84,6 +90,32 @@ ISR(INT1_vect)
 
 void senseRfid()
 {
+    while (1)
+    {
+        if (!rfid.PICC_IsNewCardPresent())
+            return;
+
+        // Verify if the NUID has been readed
+        if (!rfid.PICC_ReadCardSerial())
+            return;
+
+        Serial.print(F("vehicle"));
+        printDec(rfid.uid.uidByte, rfid.uid.size);
+        Serial.println();
+        // After printing, wait for the output to come from the python script!
+        while (!Serial.available())
+        {
+            Serial.print(".");
+        }
+
+        int resp = Serial.read();
+        Serial.print("Got resp as ");
+        Serial.println(resp);
+
+        // Halt PICC
+        rfid.PICC_HaltA();
+        rfid.PCD_StopCrypto1();
+    }
 }
 
 void setupServos()
