@@ -26,7 +26,6 @@
 // prototypes;
 ISR(INT0_vect);
 ISR(INT1_vect);
-void senseRfid();
 void setupServos();
 void servo1Open();
 void servo1Close();
@@ -40,6 +39,8 @@ bool prevSensor1 = true;
 bool prevSensor2 = true;
 bool sensor1First = true;
 bool sensor2First = true;
+bool senseRfid = false;
+char senser = '1';
 MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
 
 void setup()
@@ -60,8 +61,34 @@ void setup()
 
 void loop()
 {
-    Serial.print(".");
-    delay_ms(1000);
+    if (!senseRfid)
+    {
+        delay_ms(100);
+        return;
+    }
+
+    Serial.print("Sense RFID for the sensor: ");
+    Serial.println(senser);
+
+    while (1)
+    {
+        Serial.print(".");
+        delay_ms(100);
+        // if (!rfid.PICC_IsNewCardPresent())
+        //     continue;
+
+        // // Verify if the NUID has been readed
+        // if (!rfid.PICC_ReadCardSerial())
+        //     continue;
+
+        // Serial.print(F("vehicle"));
+        // printDec(rfid.uid.uidByte, rfid.uid.size);
+        // Serial.println();
+
+        // // Halt PICC
+        // rfid.PICC_HaltA();
+        // rfid.PCD_StopCrypto1();
+    }
 }
 
 ISR(INT0_vect)
@@ -74,7 +101,7 @@ ISR(INT0_vect)
         if (!currentValue)
         {
             Serial.println("The car has just arrived");
-            senseRfid();
+            senseRfid = true;
         }
         prevSensor1 = currentValue;
         if (sensor1First)
@@ -92,45 +119,12 @@ ISR(INT1_vect)
         if (!currentValue)
         {
             Serial.println("The car has just arrived");
+            senseRfid = true;
             // senseRfid();
         }
         prevSensor2 = currentValue;
         if (sensor2First)
             sensor2First = false;
-    }
-}
-
-void senseRfid()
-{
-    Serial.println("Sensing RFID");
-    while (1)
-    {
-        Serial.print("*");
-
-        // if (!rfid.PICC_IsNewCardPresent())
-        //     continue;
-
-        // // Verify if the NUID has been readed
-        // if (!rfid.PICC_ReadCardSerial())
-        //     continue;
-
-        // Serial.print(F("vehicle"));
-        // printDec(rfid.uid.uidByte, rfid.uid.size);
-        // Serial.println();
-        // // After printing, wait for the output to come from the python script!
-        // while (!Serial.available())
-        // {
-        //     Serial.print("^");
-        // }
-
-        // int resp = Serial.read();
-        // Serial.print("Got resp as ");
-        // Serial.println(resp);
-
-        // // Halt PICC
-        // rfid.PICC_HaltA();
-        // rfid.PCD_StopCrypto1();
-        delay_ms(500);
     }
 }
 
