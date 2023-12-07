@@ -1,8 +1,8 @@
+#include <SPI.h>
+#include <MFRC522.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdbool.h>
-#include <SPI.h>
-#include <MFRC522.h>
 
 /**
  * * Pin Information
@@ -16,6 +16,8 @@
 
 #define IR_LED_1 2
 #define IR_LED_2 3
+#define RST_PIN 6
+#define SS_PIN 7
 #define servo1 PB1
 #define servo2 PB2
 #define irLed1 PD2
@@ -31,6 +33,7 @@ void servo1Close();
 void servo2Open();
 void servo2Close();
 void delay_ms(int ms);
+void printDec(byte *buffer, byte bufferSize);
 
 // Global Values
 bool prevSensor1 = true;
@@ -43,26 +46,34 @@ void setup()
 {
     DDRD &= ~(1 << irLed1);                 // set irled1 as input
     DDRD &= ~(1 << irLed2);                 // set irled2 as input
-    PORTB |= (1 << irLed1) | (1 << irLed2); // enable the pull up resistor for both the leds.
+    PORTD |= (1 << irLed1) | (1 << irLed2); // enable the pull up resistor for both the leds.
     EICRA |= (1 << ISC00) | (1 << ISC10);   // any change
     EIMSK |= (1 << INT0) | (1 << INT1);     // enable interrupts for both.
     sei();                                  // enable global interrupts.
-    Serial.begin(9600);                     // enable serial for the given baudrate.
-    SPI.begin();                            // Init SPI bus
-    rfid.PCD_Init();                        // Init MFRC522
-    rfid.PCD_DumpVersionToSerial();         // Show details of PCD - MFRC522 Card Reader details
+    Serial.begin(115200);                   // enable serial for the given baudrate.
+    Serial.println();
+    Serial.println("Arduino Started.");
+    // SPI.begin();                            // Init SPI bus
+    // rfid.PCD_Init();                        // Init MFRC522
+    // rfid.PCD_DumpVersionToSerial();         // Show details of PCD - MFRC522 Card Reader details
 }
 
-void loop() {}
+void loop()
+{
+    Serial.print(".");
+    delay_ms(1000);
+}
 
 ISR(INT0_vect)
 {
+    // todo make sure to disable the other interrupt while we're handling this one
     _delay_ms(50); // Debouncing
     bool currentValue = (PIND & (1 << PD2)) != 0;
     if (sensor1First || currentValue != prevSensor1)
     {
         if (!currentValue)
         {
+            Serial.println("The car has just arrived");
             senseRfid();
         }
         prevSensor1 = currentValue;
@@ -73,6 +84,7 @@ ISR(INT0_vect)
 
 ISR(INT1_vect)
 {
+    // todo make sure to disable the other interrupt while we're handling this one
     _delay_ms(50); // Debouncing
     bool currentValue = (PIND & (1 << PD3)) != 0;
     if (sensor2First || currentValue != prevSensor2)
@@ -80,7 +92,7 @@ ISR(INT1_vect)
         if (!currentValue)
         {
             Serial.println("The car has just arrived");
-            senseRfid();
+            // senseRfid();
         }
         prevSensor2 = currentValue;
         if (sensor2First)
@@ -90,31 +102,35 @@ ISR(INT1_vect)
 
 void senseRfid()
 {
+    Serial.println("Sensing RFID");
     while (1)
     {
-        if (!rfid.PICC_IsNewCardPresent())
-            return;
+        Serial.print("*");
 
-        // Verify if the NUID has been readed
-        if (!rfid.PICC_ReadCardSerial())
-            return;
+        // if (!rfid.PICC_IsNewCardPresent())
+        //     continue;
 
-        Serial.print(F("vehicle"));
-        printDec(rfid.uid.uidByte, rfid.uid.size);
-        Serial.println();
-        // After printing, wait for the output to come from the python script!
-        while (!Serial.available())
-        {
-            Serial.print(".");
-        }
+        // // Verify if the NUID has been readed
+        // if (!rfid.PICC_ReadCardSerial())
+        //     continue;
 
-        int resp = Serial.read();
-        Serial.print("Got resp as ");
-        Serial.println(resp);
+        // Serial.print(F("vehicle"));
+        // printDec(rfid.uid.uidByte, rfid.uid.size);
+        // Serial.println();
+        // // After printing, wait for the output to come from the python script!
+        // while (!Serial.available())
+        // {
+        //     Serial.print("^");
+        // }
 
-        // Halt PICC
-        rfid.PICC_HaltA();
-        rfid.PCD_StopCrypto1();
+        // int resp = Serial.read();
+        // Serial.print("Got resp as ");
+        // Serial.println(resp);
+
+        // // Halt PICC
+        // rfid.PICC_HaltA();
+        // rfid.PCD_StopCrypto1();
+        delay_ms(500);
     }
 }
 
@@ -162,5 +178,14 @@ void delay_ms(int ms)
         }
         TIFR0 |= 1 << TOV0; // Clear the interrupt flag.
         TCNT0 = 0;
+    }
+}
+
+void printDec(byte *buffer, byte bufferSize)
+{
+    for (byte i = 0; i < bufferSize; i++)
+    {
+        Serial.print(buffer[i] < 0x10 ? " 0" : "-");
+        Serial.print(buffer[i], DEC);
     }
 }
