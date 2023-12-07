@@ -1,5 +1,7 @@
 #include <SPI.h>
 #include <MFRC522.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdbool.h>
@@ -41,7 +43,8 @@ bool sensor1First = true;
 bool sensor2First = true;
 bool senseRfid = false;
 char senser = '1';
-MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
+MFRC522 rfid(SS_PIN, RST_PIN);      // Instance of the class
+LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 void setup()
 {
@@ -57,6 +60,12 @@ void setup()
     SPI.begin();                    // Init SPI bus
     rfid.PCD_Init();                // Init MFRC522
     rfid.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader details
+
+    // setting up lcd.
+    lcd.init();
+    lcd.backlight();
+    lcd.setCursor(0, 0);
+    lcd.print("Parking");
 }
 
 void loop()
@@ -68,6 +77,8 @@ void loop()
         return;
     }
 
+    lcd.clear();
+    lcd.print("Enter Card");
     Serial.println();
     Serial.print("Sense RFID for the sensor: ");
     Serial.println(senser);
@@ -86,6 +97,8 @@ void loop()
         Serial.print(F("vehicle"));
         printDec(rfid.uid.uidByte, rfid.uid.size);
         Serial.println();
+        lcd.clear();
+        lcd.print("Please Wait");
 
         while (!Serial.available())
         {
@@ -95,8 +108,37 @@ void loop()
 
         Serial.println();
         char resp = Serial.read();
+        while (resp < '0' && resp > '2')
+        {
+            resp = Serial.read();
+        }
         Serial.print("Got resp as ");
         Serial.println(resp);
+
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        if (resp == '0')
+        {
+            lcd.print("No Space");
+            lcd.setCursor(0, 1);
+            lcd.print("Available");
+        }
+        else if (resp == '1')
+        {
+            lcd.print("Welcome To");
+            lcd.setCursor(0, 1);
+            lcd.print("Parking");
+        }
+        else if (resp == '2')
+        {
+            lcd.print("Thanks For");
+            lcd.setCursor(0, 1);
+            lcd.print("Coming.");
+        }
+        else
+        {
+            lcd.print("Invalid");
+        }
 
         // Halt PICC
         rfid.PICC_HaltA();
