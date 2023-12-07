@@ -20,8 +20,8 @@
 #define IR_LED_2 3
 #define RST_PIN 6
 #define SS_PIN 7
-#define servo1 PB1
-#define servo2 PB2
+#define servo1 PB2
+#define servo2 PB1
 #define irLed1 PD2
 #define irLed2 PD3
 
@@ -108,13 +108,6 @@ void loop()
 
         char resp = Serial.read();
         Serial.println();
-        // while (resp < '0' && resp > '2')
-        // {
-        //     resp = Serial.read();
-        // }
-
-        // Serial.print("Got resp as ");
-        // Serial.println(resp);
 
         lcd.clear();
         lcd.setCursor(0, 0);
@@ -136,7 +129,7 @@ void loop()
             lcd.print("Thanks For");
             lcd.setCursor(0, 1);
             lcd.print("Coming.");
-            servo1Open();
+            servo2Open();
         }
         else
         {
@@ -205,22 +198,31 @@ void setupServos()
 
 void servo1Open()
 {
-    OCR1A = 2999;
+    // DDRB |= (1 << servo1);
+    // TCCR1A |= (1 << COM1A1) | (1 << WGM11);
+    // TCCR1B |= (1 << WGM13) | (1 << WGM12) | (1 << CS11);
+    // ICR1 = 39999;
+    // OCR1A = 2999;
+    // delay_ms(1000);
+    // TCCR1A = 0x0;
+    // TCCR1B = 0x0;
+    // OCR1A = 0x0;
+    // DDRB &= ~(1 << servo1);
 }
 
 void servo1Close()
 {
-    OCR1A = 1999;
+    // OCR1A = 1999;
 }
 
 void servo2Open()
 {
-    OCR2A = 2999;
+    // OCR2A = 2999;
 }
 
 void servo2Close()
 {
-    OCR2A = 1999;
+    // OCR2A = 1999;
 }
 
 void delay_ms(int ms)
