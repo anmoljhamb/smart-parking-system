@@ -25,6 +25,7 @@
 #define servo2 PB1
 #define irLed1 PD2
 #define irLed2 PD3
+#define MOTOR_DELAY 1000
 
 // prototypes;
 ISR(INT0_vect);
@@ -216,7 +217,7 @@ void entryOpen()
 {
     servo.attach(10);
     servo.write(70);
-    delay(2000);
+    delay(MOTOR_DELAY);
     servo.detach();
 }
 
@@ -224,7 +225,7 @@ void entryClose()
 {
     servo.attach(10);
     servo.write(40);
-    delay(2000);
+    delay(MOTOR_DELAY);
     servo.detach();
 }
 
@@ -232,7 +233,7 @@ void exitOpen()
 {
     servo.attach(9);
     servo.write(70);
-    delay(2000);
+    delay(MOTOR_DELAY);
     servo.detach();
 }
 
@@ -240,6 +241,6 @@ void exitClose()
 {
     servo.attach(9);
     servo.write(40);
-    delay(2000);
+    delay(MOTOR_DELAY);
     servo.detach();
 }
