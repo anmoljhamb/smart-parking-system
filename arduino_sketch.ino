@@ -63,10 +63,12 @@ void loop()
 {
     if (!senseRfid)
     {
-        delay_ms(100);
+        Serial.print("^");
+        delay_ms(500);
         return;
     }
 
+    Serial.println();
     Serial.print("Sense RFID for the sensor: ");
     Serial.println(senser);
 
@@ -85,10 +87,24 @@ void loop()
         printDec(rfid.uid.uidByte, rfid.uid.size);
         Serial.println();
 
+        while (!Serial.available())
+        {
+            Serial.print("*");
+            delay_ms(100);
+        }
+
+        Serial.println();
+        char resp = Serial.read();
+        Serial.print("Got resp as ");
+        Serial.println(resp);
+
         // Halt PICC
         rfid.PICC_HaltA();
         rfid.PCD_StopCrypto1();
+        break;
     }
+
+    senseRfid = false;
 }
 
 ISR(INT0_vect)
