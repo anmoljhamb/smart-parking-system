@@ -54,9 +54,9 @@ void setup()
     Serial.begin(115200);                   // enable serial for the given baudrate.
     Serial.println();
     Serial.println("Arduino Started.");
-    // SPI.begin();                            // Init SPI bus
-    // rfid.PCD_Init();                        // Init MFRC522
-    // rfid.PCD_DumpVersionToSerial();         // Show details of PCD - MFRC522 Card Reader details
+    SPI.begin();                    // Init SPI bus
+    rfid.PCD_Init();                // Init MFRC522
+    rfid.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader details
 }
 
 void loop()
@@ -74,20 +74,20 @@ void loop()
     {
         Serial.print(".");
         delay_ms(100);
-        // if (!rfid.PICC_IsNewCardPresent())
-        //     continue;
+        if (!rfid.PICC_IsNewCardPresent())
+            continue;
 
-        // // Verify if the NUID has been readed
-        // if (!rfid.PICC_ReadCardSerial())
-        //     continue;
+        // Verify if the NUID has been readed
+        if (!rfid.PICC_ReadCardSerial())
+            continue;
 
-        // Serial.print(F("vehicle"));
-        // printDec(rfid.uid.uidByte, rfid.uid.size);
-        // Serial.println();
+        Serial.print(F("vehicle"));
+        printDec(rfid.uid.uidByte, rfid.uid.size);
+        Serial.println();
 
-        // // Halt PICC
-        // rfid.PICC_HaltA();
-        // rfid.PCD_StopCrypto1();
+        // Halt PICC
+        rfid.PICC_HaltA();
+        rfid.PCD_StopCrypto1();
     }
 }
 
