@@ -129,12 +129,14 @@ void loop()
             lcd.print("Welcome To");
             lcd.setCursor(0, 1);
             lcd.print("Parking");
+            servo1Open();
         }
         else if (resp == '2')
         {
             lcd.print("Thanks For");
             lcd.setCursor(0, 1);
             lcd.print("Coming.");
+            servo1Open();
         }
         else
         {
@@ -154,6 +156,7 @@ ISR(INT0_vect)
 {
     // todo make sure to disable the other interrupt while we're handling this one
     _delay_ms(50); // Debouncing
+    servo1Close();
     bool currentValue = (PIND & (1 << PD2)) != 0;
     if (sensor1First || currentValue != prevSensor1)
     {
@@ -172,6 +175,7 @@ ISR(INT1_vect)
 {
     // todo make sure to disable the other interrupt while we're handling this one
     _delay_ms(50); // Debouncing
+    servo2Close();
     bool currentValue = (PIND & (1 << PD3)) != 0;
     if (sensor2First || currentValue != prevSensor2)
     {
