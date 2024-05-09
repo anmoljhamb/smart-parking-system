@@ -120,11 +120,7 @@ void loop() {
       lcd.print("Available");
       entryClose();
     } else if (resp[0] == 'e') {
-      // lcd.print("Welcome To");
-      // lcd.setCursor(0, 1);
-      // lcd.print("Parking");
-      // entryOpen();
-      // delay_ms(2000);
+      entryOpen();
       String slot = resp.substring(1);
       lcd.clear();
       lcd.print("Park On");
