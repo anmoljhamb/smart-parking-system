@@ -6,22 +6,46 @@ arduino = serial.Serial(port="/dev/ttyACM0", baudrate=115200, timeout=0.1)
 
 # Define a dynamic size for the list
 list_size = 3  # Change this value to set the list size
-received_strings = []
+# Tupl
+slots = ["" for _ in range(list_size)]
+recieved_cars = []
+
+
+def get_first_empty_slot():
+    for i in range(list_size):
+        if len(slots[i]) == 0:
+            return i
+    return -1
+
+
+def get_el(uid: str):
+    for car in recieved_cars:
+        if car[0] == uid:
+            return car
+    return None
 
 
 def handle_input(data):
-    global received_strings
-    print(received_strings)
+    global recieved_cars
+    print(slots)
 
     if data.startswith("vehicle-"):
-        if data[8:] in received_strings:
+        el = get_el(data[8:])
+        if el:
             # Provided string is in the list, remove it
-            received_strings.remove(data[8:])
-            return 2
-        if len(received_strings) >= list_size:
-            return 0
-        received_strings.append(data[8:])
-        return 1
+            el = get_el(data[8:])
+            recieved_cars.remove(el)
+            slot = slots.index(data[8:])
+            slots[slot] = ""
+            return "r"
+        if len(recieved_cars) >= list_size:
+            return "n"
+        slot = get_first_empty_slot()
+        slots[slot] = data[8:]
+        recieved_cars.append(
+            (data[8:], time.time(), slot),
+        )
+        return "e" + str(slot + 1)
     else:
         # Print the string that was sent
         print("Received:", data)
@@ -45,9 +69,11 @@ while True:
         result = handle_input(value)
 
         # Sending appropriate response to Arduino
-        if result == 0:
-            send_to_arduino("0")  # Sending '0' if list is full
-        elif result == 1:
-            send_to_arduino("1")  # Sending '1' if string is added
-        elif result == 2:
-            send_to_arduino("2")  # Sending '2' if string is removed
+        if result != -1:
+            send_to_arduino(result)
+        # if result == 0:
+        #     send_to_arduino("0")  # Sending '0' if list is full
+        # elif result == 1:
+        #     send_to_arduino("1")  # Sending '1' if string is added
+        # elif result == 2:
+        #     send_to_arduino("2")  # Sending '2' if string is removed
