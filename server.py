@@ -1,10 +1,11 @@
-import serial
 import time
+
+import serial
 
 arduino = serial.Serial(port="/dev/ttyACM0", baudrate=115200, timeout=0.1)
 
 # Define a dynamic size for the list
-list_size = 2  # Change this value to set the list size
+list_size = 3  # Change this value to set the list size
 received_strings = []
 
 
@@ -17,7 +18,7 @@ def handle_input(data):
             # Provided string is in the list, remove it
             received_strings.remove(data[8:])
             return 2
-        if (len(received_strings) >= list_size):
+        if len(received_strings) >= list_size:
             return 0
         received_strings.append(data[8:])
         return 1

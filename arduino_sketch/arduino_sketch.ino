@@ -124,6 +124,7 @@ void loop()
             lcd.print("No Space");
             lcd.setCursor(0, 1);
             lcd.print("Available");
+      entryClose();
         }
         else if (resp == '1')
         {
@@ -216,7 +217,7 @@ void printDec(byte *buffer, byte bufferSize)
 void entryOpen()
 {
     servo.attach(10);
-    servo.write(70);
+    servo.write(0);
     delay(MOTOR_DELAY);
     servo.detach();
 }
@@ -232,7 +233,7 @@ void entryClose()
 void exitOpen()
 {
     servo.attach(9);
-    servo.write(70);
+    servo.write(80);
     delay(MOTOR_DELAY);
     servo.detach();
 }
