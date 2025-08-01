@@ -4,7 +4,7 @@
 
 The Smart Parking System is an IoT-based project designed for efficient parking management. It utilizes embedded C programming for Arduino and a Python server for communication. The system employs RFID technology, infrared sensors, and servo motors to automate entry and exit processes.
 
-![DemoPhoto](./demo-photo.jpg)
+![DemoPhoto](./screenshot.jpg)
 
 ## Features
 
