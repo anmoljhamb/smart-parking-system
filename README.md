@@ -1,4 +1,4 @@
-# Smart Parking System README
+# Smart Parking System
 
 ## Overview
 
